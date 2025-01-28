@@ -1,0 +1,23 @@
+{
+  "name": "bitwallet-bot",
+  "version": "1.0.0",
+  "description": "BitWallet is a Telegram bot for checking the balances of crypto wallets. It checks the balance of addresses in blockchains (Ethereum, Binance Smart Chain, Polygon, Avalanche, Fantom). Connect with @ICEMANxx420 to build more cool apps and AI agents for your business.",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": ["crypto", "wallet", "balance", "bot", "telegram", "blockchain"],
+  "author": "ICEMANxx420",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "mongodb": "^4.13.0",
+    "node-telegram-bot-api": "^0.61.0",
+    "web3": "^1.8.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}
