@@ -6,10 +6,9 @@ import Web3 from 'web3'
 const { BOT_TOKEN, MONGODB_URI, STICKER, ETH_API, BNB_API, MATIC_API, AVAX_API, FTM_API } = process.env
 
 const client = new MongoClient(MONGODB_URI)
+await client.connect()
 
-client.connect()
-
-const db = client.db('bitwallet')  // Updated database name
+const db = client.db('bitwallet')
 const users = db.collection('users')
 
 const ethWeb3 = new Web3(ETH_API)
@@ -21,43 +20,25 @@ const ftmWeb3 = new Web3(FTM_API)
 const bot = new TelegramApi(BOT_TOKEN, { polling: true })
 
 bot.setMyCommands([
-  { command: '/start', description: 'Start BitWallet' },
-  { command: '/help', description: 'Help Info' }
+  { command: '/start', description: 'Let’s go!' },
+  { command: '/help', description: 'How this works' }
 ])
 
 bot.on('message', async msg => {
   const text = msg.text
   const chatId = msg.chat.id
-  const language = msg.from.language_code
 
   try {
     if (text === '/start') {
       await bot.sendSticker(chatId, STICKER)
-      if (language === 'ru') {
-        await bot.sendMessage(chatId,
-          `👋🏻 Привет ${msg.from.first_name}${(msg.from.last_name === undefined) ? '': ` ${msg.from.last_name}`}!\n` +
-          '🔎 Это BitWallet - бот для проверки балансов криптокошельков.\n' +
-          '👨🏻‍💻 Автор: @ICEMANxx420'
-        )
-
-        await bot.sendMessage(chatId,
-          'Отправьте адрес кошелька,\n' +
-          'баланс которого вы хотите проверить.\n' +
-          'Пример: 0xb85eaf59e6dc69ac7b6d92c6c24e1a83b582b293'
-        )
-      } else {
-        await bot.sendMessage(chatId,
-          `👋🏻 Hello ${msg.from.first_name}${(msg.from.last_name === undefined) ? '': ` ${msg.from.last_name}`}!\n` +
-          '🔎 This is BitWallet - a crypto balance checker bot.\n' +
-          '👨🏻‍💻 Author: @ICEMANxx420'
-        )
-
-        await bot.sendMessage(chatId,
-          'Send the address of the wallet\n' +
-          'whose balance you want to check.\n' +
-          'Example: 0xb85eaf59e6dc69ac7b6d92c6c24e1a83b582b293'
-        )
-      }
+      await bot.sendMessage(chatId,
+        `🚀 Yo ${msg.from.first_name}! Welcome to BitWallet.
+        
+        🔍 Check your crypto balances with zero effort.
+        
+        👉 Just drop a wallet address and I’ll fetch the deets for ya.
+        `
+      )
 
       await users.findOne({ id: chatId }).then(async res => {
         if (!res) {
@@ -71,24 +52,20 @@ bot.on('message', async msg => {
         }
       })
     } else if (text === '/help') {
-      if (language === 'ru') {
-        await bot.sendMessage(chatId,
-          'Отправьте адрес кошелька,\n' +
-          'баланс которого вы хотите проверить.\n' +
-          'Пример: 0xb85eaf59e6dc69ac7b6d92c6c24e1a83b582b293'
-        )
-      } else {
-        await bot.sendMessage(chatId,
-          'Send the address of the wallet\n' +
-          'whose balance you want to check.\n' +
-          'Example: 0xb85eaf59e6dc69ac7b6d92c6c24e1a83b582b293'
-        )
-      }
+      await bot.sendMessage(chatId,
+        `🤖 Super easy to use:
+        
+        ✅ Drop a wallet address
+        ✅ I’ll fetch your balance across major chains
+        ✅ Profit 💰
+        
+        Example: 0xb85eaf59e6dc69ac7b6d92c6c24e1a83b582b293`
+      )
     } else {
       const isAddress = await bnbWeb3.utils.isAddress(text)
 
-      if(isAddress) {
-        const botMsg = await bot.sendMessage(chatId, 'Checking...')
+      if (isAddress) {
+        const botMsg = await bot.sendMessage(chatId, 'Hold up... Checking 🧐')
         const botMsgId = botMsg.message_id
 
         const eth = await ethWeb3.eth.getBalance(text)
@@ -99,11 +76,13 @@ bot.on('message', async msg => {
         
         bot.deleteMessage(chatId, botMsgId)
         bot.sendMessage(chatId,
-          `${bnbWeb3.utils.fromWei(eth, 'ether')} ETH\n` +
-          `${bnbWeb3.utils.fromWei(bnb, 'ether')} BNB\n` +
-          `${bnbWeb3.utils.fromWei(matic, 'ether')} MATIC\n` +
-          `${bnbWeb3.utils.fromWei(avax, 'ether')} AVAX\n` +
-          `${bnbWeb3.utils.fromWei(ftm, 'ether')} FTM\n`
+          `💎 Here’s what you got:
+          
+          🏦 ${bnbWeb3.utils.fromWei(eth, 'ether')} ETH
+          🔥 ${bnbWeb3.utils.fromWei(bnb, 'ether')} BNB
+          🚀 ${bnbWeb3.utils.fromWei(matic, 'ether')} MATIC
+          ❄️ ${bnbWeb3.utils.fromWei(avax, 'ether')} AVAX
+          👻 ${bnbWeb3.utils.fromWei(ftm, 'ether')} FTM`
         )
 
         await users.updateOne({ id: chatId },
@@ -125,11 +104,7 @@ bot.on('message', async msg => {
           }
         )
       } else {
-        if (language === 'ru') {
-          await bot.sendMessage(chatId, 'Это не адрес')
-        } else {
-          await bot.sendMessage(chatId, 'This is not an address')
-        }
+        await bot.sendMessage(chatId, '❌ That doesn’t look like a wallet address, fam.')
         
         await users.updateOne({ id: chatId },
           {
@@ -152,10 +127,6 @@ bot.on('message', async msg => {
       }
     }
   } catch (err) {
-    if (language === 'ru') {
-      await bot.sendMessage(chatId, 'Что-то пошло не так')
-    } else {
-      await bot.sendMessage(chatId, 'Something went wrong')
-    }
+    await bot.sendMessage(chatId, '😵 Oops, something broke. Try again!')
   }
 })
